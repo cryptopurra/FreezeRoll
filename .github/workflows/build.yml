@@ -1,0 +1,36 @@
+name: Build FreezeRoll
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            extra: ""
+          - os: macos-latest
+            name: macOS
+            extra: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release ${{ matrix.extra }}
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: FreezeRoll-${{ matrix.name }}
+          path: build/FreezeRoll_artefacts/Release
